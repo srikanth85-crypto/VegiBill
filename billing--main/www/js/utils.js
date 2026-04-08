@@ -2,17 +2,6 @@
 //  VegiBill TN — utils.js
 // ═══════════════════════════════════════════════════
 
-// ── ESCAPE HTML ──────────────────────────────────────
-function esc(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 // ── CURRENCY ─────────────────────────────────────────
 function fmtCurrency(n) {
   if (isNaN(n) || n === '' || n === null) return '₹0.00';
@@ -38,21 +27,6 @@ function fmtDateKey(key) {
   const [y, m, d] = key.split('-');
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${d} ${months[parseInt(m,10)-1]} ${y}`;
-}
-
-// ── MODAL ────────────────────────────────────────────
-function closeModal() {
-  document.getElementById('modal-overlay').classList.add('hidden');
-  document.getElementById('modal-box').classList.add('hidden');
-}
-
-// ── TOAST ────────────────────────────────────────────
-function showToast(message, type = 'info') {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.className = `toast toast-${type}`;
-  toast.classList.remove('hidden');
-  setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
 // ── FILTER BY PERIOD ─────────────────────────────────

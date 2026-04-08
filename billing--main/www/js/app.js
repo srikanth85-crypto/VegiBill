@@ -57,11 +57,11 @@ function renderPage(tab, params = {}) {
     case 'purchase-detail': renderPurchaseDetail(container, params); break;
     case 'parties':     renderParties(container, params); break;
     case 'items':       renderItems(container, params); break;
-    case 'report':      renderReport(container, params); break;
-    case 'date-report': renderDateReport(container, params); break;
     case 'admin':       renderAdmin(container, params); break;
     case 'party-detail':renderPartyDetail(container, params); break;
     case 'party-date':  renderPartyDate(container, params); break;
+    case 'report':      renderReport(container, params); break;
+    case 'report-detail': renderReportDetail(container, params); break;
     default:            container.innerHTML = '<div class="page">Page not found</div>';
   }
 }
