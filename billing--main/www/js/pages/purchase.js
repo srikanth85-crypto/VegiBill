@@ -109,8 +109,8 @@ function renderPurchaseDetail(container, params) {
 
   setHeaderTitle(bill.id, fmtDate(bill.createdAt));
   document.getElementById('header-actions').innerHTML = `
-    <button class="btn btn-secondary btn-sm" onclick="shareBill(buildShareText(DB.getPurchaseById('${bill.id}'),'purchase'))">📤</button>
-    <button class="btn btn-blue btn-sm" onclick="printSingleBill('${bill.id}','purchase')">🖨</button>`;
+    <button class="btn btn-secondary btn-sm" onclick="shareBill(buildShareText(DB.getPurchaseById('${bill.id}'),'purchase'))">📤 Share</button>
+    <button class="btn btn-primary btn-sm" onclick="printSingleBill('${bill.id}','purchase')">🖨️ Print</button>`;
 
   const sungam = Number(bill.sungam || 0);
   const sub = Number(bill.subTotal || 0);
@@ -154,10 +154,11 @@ function renderPurchaseDetail(container, params) {
       </div>
 
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-        <button class="btn btn-blue flex-1" onclick="printSingleBill('${bill.id}','purchase')">🖨 Print</button>
+        <button class="btn btn-primary flex-1" onclick="printSingleBill('${bill.id}','purchase')">🖨️ A4 Invoice</button>
+        <button class="btn btn-secondary flex-1" onclick="printThermalBill('${bill.id}','purchase')">🧾 Thermal</button>
         <button class="btn btn-secondary flex-1" onclick="shareBill(buildShareText(DB.getPurchaseById('${bill.id}'),'purchase'))">📤 Share</button>
         <button class="btn btn-amber flex-1" onclick="pushPage('add-purchase',{editId:'${bill.id}'})">✏️ Edit</button>
-        <button class="btn btn-danger flex-1" onclick="confirmModal('Delete ${esc(bill.id)}?',function(){DB.deletePurchase('${bill.id}');showToast('Deleted');navigateTo('purchase');})">🗑 Delete</button>
+        <button class="btn btn-danger" style="width:40px;padding:0;" onclick="confirmModal('Delete ${esc(bill.id)}?',function(){DB.deletePurchase('${bill.id}');showToast('Deleted','success');navigateTo('purchase');})">🗑️</button>
       </div>
     </div>`;
 }

@@ -83,13 +83,13 @@ function renderAddPurchase(container, params = {}) {
         </div>
 
       <!-- SAVE -->
-      <div style="display:flex;gap:10px;margin-top:14px;padding-bottom:20px;">
+      <div style="display:flex;gap:10px;margin-top:14px;padding-bottom:24px;">
         <button class="btn btn-secondary flex-1" onclick="goBack()">Cancel</button>
-        <button class="btn btn-amber flex-1" onclick="savePurchaseBill()">
+        <button class="btn btn-amber flex-1" onclick="savePurchaseBill()" style="background:#d97706;color:#fff;border:none;">
           💾 ${_editPurId ? 'Update' : 'Save'}
         </button>
-        <button class="btn btn-amber flex-1 btn-lg" onclick="savePurchaseBillAndPrint()">
-          🖨️ ${_editPurId ? 'Update & Print' : 'Save & Print'}
+        <button class="btn btn-amber flex-1" onclick="savePurchaseBillAndPrint()" style="background:#d97706;color:#fff;border:none;">
+          🖨️ Save & Print
         </button>
       </div>
     </div>`;
@@ -323,21 +323,22 @@ function _showPurAutocomplete(i) {
   const dropdownId = isMobile ? `pur-autocomplete-mobile-${i}` : `pur-autocomplete-${i}`;
   const dropdown = document.getElementById(dropdownId);
   if (!input || !dropdown) return;
-  
+
   const suggestions = _getPurItemSuggestions(input.value);
-  
-  if (suggestions.length > 0 && input.value.length >= 2) {
+
+  if (suggestions.length > 0 && input.value.length >= 1) {
     _purAutocompleteOpen = i;
-    dropdown.innerHTML = suggestions.map((item, idx) => `
-      <div style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border3);font-size:12px;background:white;" 
-        data-name="${esc(item.name)}"
-        onmouseover="this.style.background='var(--bg2)'" 
-        onmouseout="this.style.background='white'"
-        onclick="event.stopPropagation(); _selectPurItem(${i}, '${esc(item.name)}')">
-        <strong>${esc(item.name)}</strong><br/>
-        <span style="color:var(--text2);font-size:11px;">${esc(item.tamil)}</span>
-      </div>
-    `).join('');
+    dropdown.innerHTML = suggestions.map((item) => `
+      <div class="autocomplete-item"
+        onmousedown="event.preventDefault();_selectPurItem(${i}, '${esc(item.id)}')"
+        onmouseover="this.classList.add('highlighted')" onmouseout="this.classList.remove('highlighted')">
+        <span class="ac-emoji">${item.emoji || '🥬'}</span>
+        <div>
+          <div class="ac-name">${esc(item.name)}</div>
+          <div class="ac-detail">${esc(item.tamil || '')}${item.price > 0 ? ` · Last: ₹${item.price}` : ''}</div>
+        </div>
+      </div>`
+    ).join('');
     dropdown.style.display = 'block';
   } else {
     dropdown.style.display = 'none';
@@ -345,19 +346,30 @@ function _showPurAutocomplete(i) {
   }
 }
 
-function _selectPurItem(i, name) {
-  _purItems[i].itemName = name;
+function _selectPurItem(i, itemId) {
+  const items = DB.getItems();
+  const found = items.find(it => it.id === itemId);
+  if (!found) return;
+
+  _purItems[i].itemName = found.name;
+  _purItems[i].unit = found.unit || 'kg';
+  if (found.price > 0) _purItems[i].pricePerUnit = found.price;
+
   const input = document.querySelector(`.pur-item-name[data-index="${i}"]`);
-  if (input) input.value = name;
+  if (input) input.value = found.name;
+  const priceInput = document.querySelector(`.pur-item-price[data-index="${i}"]`);
+  if (priceInput && found.price > 0) priceInput.value = found.price;
+
   const isMobile = window.innerWidth < 480;
   const dropdownId = isMobile ? `pur-autocomplete-mobile-${i}` : `pur-autocomplete-${i}`;
   const dropdown = document.getElementById(dropdownId);
   if (dropdown) dropdown.style.display = 'none';
   _purAutocompleteOpen = null;
+  calcPurRowTotal(i);
   // Focus next field
   setTimeout(() => {
-    const bagsInput = document.querySelector(`.pur-item-bags[data-index="${i}"]`);
-    if (bagsInput) bagsInput.focus();
+    const qtyInput = document.querySelector(`.pur-item-qty[data-index="${i}"]`);
+    if (qtyInput) qtyInput.focus();
   }, 50);
 }
 
@@ -394,51 +406,48 @@ function _buildPurchaseBill() {
 
 function savePurchaseBill() {
   const bill = _buildPurchaseBill();
-  if (!bill) { showToast('⚠️ Add at least one item!'); return; }
+  if (!bill) { showToast('⚠️ Add at least one item!', 'error'); return; }
 
   const saved = DB.savePurchase(bill);
-  showToast('✅ Purchase saved! ' + saved.id);
+  showToast('✅ Purchase saved! ' + saved.id, 'success');
 
-  // Show success with buttons
   const container = document.getElementById('page-container');
   container.innerHTML = `
-    <div class="page" style="text-align:center;padding:40px 20px;">
-      <div style="font-size:48px;margin-bottom:20px;">✅</div>
-      <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Purchase Saved Successfully!</div>
-      <div style="color:var(--text3);margin-bottom:30px;">Bill ID: ${saved.id}</div>
-      <div style="display:flex;gap:15px;justify-content:center;">
-        <button class="btn btn-primary" onclick="navigateTo('add-sale')">+ Add Sale</button>
-        <button class="btn btn-amber" onclick="navigateTo('add-purchase')">+ Add Purchase</button>
-        <button class="btn btn-secondary" onclick="navigateTo('home')">🚪 Exit</button>
+    <div class="page" style="text-align:center;padding:48px 24px;">
+      <div style="font-size:56px;margin-bottom:20px;">✅</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:8px;color:var(--text);">Purchase Saved!</div>
+      <div style="color:var(--text3);margin-bottom:8px;font-size:14px;">Bill: <strong>${saved.id}</strong></div>
+      <div style="color:var(--text3);margin-bottom:30px;font-size:14px;">Total: <strong style="color:var(--amber)">${fmtCurrency(saved.grandTotal)}</strong></div>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto;">
+        <button class="btn btn-primary btn-full" onclick="printSingleBill('${saved.id}','purchase')">🖨️ Print Invoice</button>
+        <button class="btn btn-secondary btn-full" onclick="navigateTo('add-purchase')">+ New Purchase</button>
+        <button class="btn btn-secondary btn-full" onclick="navigateTo('home')">🏠 Go Home</button>
       </div>
     </div>`;
 }
 
 function savePurchaseBillAndPrint() {
   const bill = _buildPurchaseBill();
-  if (!bill) { showToast('⚠️ Add at least one item!'); return; }
+  if (!bill) { showToast('⚠️ Add at least one item!', 'error'); return; }
 
   const saved = DB.savePurchase(bill);
-  showToast('✅ Purchase saved! ' + saved.id);
+  showToast('✅ Saved! Opening print...', 'success');
 
-  // Print immediately
-  setTimeout(() => {
-    printSingleBill(saved.id, 'purchase');
-  }, 300);
+  setTimeout(() => { printSingleBill(saved.id, 'purchase'); }, 300);
 
-  // Show success with buttons after print
   setTimeout(() => {
     const container = document.getElementById('page-container');
     container.innerHTML = `
-      <div class="page" style="text-align:center;padding:40px 20px;">
-        <div style="font-size:48px;margin-bottom:20px;">🖨️</div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Purchase Printed Successfully!</div>
-        <div style="color:var(--text3);margin-bottom:30px;">Bill ID: ${saved.id}</div>
-        <div style="display:flex;gap:15px;justify-content:center;">
-          <button class="btn btn-primary" onclick="navigateTo('add-sale')">+ Add Sale</button>
-          <button class="btn btn-amber" onclick="navigateTo('add-purchase')">+ Add Purchase</button>
-          <button class="btn btn-secondary" onclick="navigateTo('home')">🚪 Exit</button>
+      <div class="page" style="text-align:center;padding:48px 24px;">
+        <div style="font-size:56px;margin-bottom:20px;">🖨️</div>
+        <div style="font-size:20px;font-weight:800;margin-bottom:8px;color:var(--text);">Purchase Printed!</div>
+        <div style="color:var(--text3);margin-bottom:8px;font-size:14px;">Bill: <strong>${saved.id}</strong></div>
+        <div style="color:var(--text3);margin-bottom:30px;font-size:14px;">Total: <strong style="color:var(--amber)">${fmtCurrency(saved.grandTotal)}</strong></div>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:280px;margin:0 auto;">
+          <button class="btn btn-primary btn-full" onclick="printSingleBill('${saved.id}','purchase')">🖨️ Print Again</button>
+          <button class="btn btn-secondary btn-full" onclick="navigateTo('add-purchase')">+ New Purchase</button>
+          <button class="btn btn-secondary btn-full" onclick="navigateTo('home')">🏠 Go Home</button>
         </div>
       </div>`;
-  }, 500);
+  }, 600);
 }

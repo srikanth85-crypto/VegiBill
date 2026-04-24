@@ -1,7 +1,5 @@
 // ═══════════════════════════════════════════════════
 //  VegiBill TN — db.js  (Local Storage Database)
-//  Replace localStorage calls with Firebase/Supabase
-//  by swapping functions below.
 // ═══════════════════════════════════════════════════
 
 const DB = (() => {
@@ -15,7 +13,8 @@ const DB = (() => {
   }
 
   function write(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.error('DB write error', e); }
+    try { localStorage.setItem(key, JSON.stringify(value)); }
+    catch (e) { console.error('DB write error', e); }
   }
 
   // ── BILL NUMBER GENERATOR ─────────────────────────
@@ -81,7 +80,6 @@ const DB = (() => {
   function getPartyById(id) { return getParties().find(p => p.id === id); }
 
   // ── PARTY BALANCE OVERRIDE ────────────────────────
-  // balances: { partyName_date_type: {less, adjustment} }
   function getPartyBalances() { return read('vb_party_balances', {}); }
   function setPartyBalance(partyName, date, type, less, adjustment) {
     const b = getPartyBalances();
@@ -96,61 +94,68 @@ const DB = (() => {
   // ── SETTINGS ──────────────────────────────────────
   function getSettings() {
     return read('vb_settings', {
-      shopName: 'Sri Murugan Vegetables',
-      address: 'No. 12, Market Street, Chennai - 600001',
-      phone: '9876543210',
-      gstin: '33AABCU9603R1ZJ',
-      state: 'Tamil Nadu',
+      shopName:  'SRI PERIYANAYAGI AMMAN',
+      address:   'Shop No 66, Gandhi Market, Thangachiammapatti',
+      city:      'Oddanchatram 624612',
+      phone:     '9876543210',
+      email:     'shop@example.com',
+      gstin:     '33AABCU9603R1ZJ',
+      state:     'Tamil Nadu',
       stateCode: '33',
+      logoUrl:   'img/logo.png',
     });
   }
   function saveSettings(s) { write('vb_settings', s); }
 
   // ── ITEM MASTER ────────────────────────────────────
   const DEFAULT_ITEMS = [
-    { id: 'u_chilly',      name: 'u_chilly',            unit: 'kg',    emoji: '🌶️' },
-    { id: 's_chilly',      name: 's_chilly',           unit: 'kg',    emoji: '🌶️' },
-    { id: 'drumstick',     name: 'drumstick',           unit: 'bunch', emoji: '🌿' },
-    { id: 'l_finger',      name: 'l_finger',       unit: 'kg',    emoji: '🌿' },
-    { id: 'payaru',        name: 'payaru',                     unit: 'kg',    emoji: '🫛' },
-    { id: 'beetroot',      name: 'beetroot',              unit: 'kg',    emoji: '🫜' },
-    { id: 'k_amarai',      name: 'k_amarai',                  unit: 'kg',    emoji: '🫘' },
-    { id: 'kozhi_amarai',  name: 'kozhi_amarai',          unit: 'kg',    emoji: '🫘' },
-    { id: 'pavai',         name: 'pavai',        unit: 'kg',    emoji: '🫘' },
-    { id: 'peerkan',       name: 'peerkan',         unit: 'kg',    emoji: '🥬' },
-    { id: 'kovaikkai',     name: 'kovaikkai',          unit: 'kg',    emoji: '🥒' },
-    { id: 'k_manga',       name: 'k_manga',         unit: 'kg',    emoji: '🥭' },
-    { id: 'u_manga',       name: 'u_manga',                  unit: 'kg',    emoji: '🥭' },
-    { id: 'kiyar',         name: 'kiyar',                   unit: 'kg',    emoji: '🥒' },
-    { id: 'elavan',        name: 'elavan',                   unit: 'kg',    emoji: '🧅' },
-    { id: 's_vellari',     name: 's_vellari',              unit: 'kg',    emoji: '🥬' },
-    { id: 'onion',         name: 'onion',                   unit: 'kg',    emoji: '🧅' },
-    { id: 'thar',          name: 'thar',                        unit: 'kg',    emoji: '🍅' },
-    { id: 'brinjal',       name: 'brinjal',            unit: 'kg',    emoji: '🍆' },
-    { id: 'koork',         name: 'koork',     unit: 'kg',    emoji: '🥬' },
-    { id: 'chembu',        name: 'chembu',           unit: 'kg',    emoji: '🥔' },
-    { id: 'lemon',         name: 'lemon',                 unit: 'pc',    emoji: '🍋' },
-    { id: 'northan',       name: 'northan',                unit: 'kg',    emoji: '🥔' },
-    { id: 'beens',         name: 'beens',                    unit: 'kg',    emoji: '🫘' },
-    { id: 'b_avarai',      name: 'b_avarai',       unit: 'kg',    emoji: '🫘' },
-    { id: 'chow_chow',     name: 'chow_chow',   unit :'kg' },
-    { id: 'suraikkai',     name: 'suraikkai',            unit: 'kg',    emoji: '🥬' },
-    { id: 'nelli',         name: 'nelli',                  unit: 'pc',    emoji: '🫐' },
-    { id: 'c_flower',      name: 'c_flower',            unit: 'kg',    emoji: '🥦' },
+    { id: 'u_chilly',      name: 'U Chilly',           tamil: 'உ.மிளகாய்',   unit: 'kg',    emoji: '🌶️',  price: 0 },
+    { id: 's_chilly',      name: 'S Chilly',            tamil: 'எஸ்.மிளகாய்', unit: 'kg',    emoji: '🌶️',  price: 0 },
+    { id: 'drumstick',     name: 'Drumstick',           tamil: 'முருங்கை',    unit: 'bunch', emoji: '🌿',  price: 0 },
+    { id: 'l_finger',      name: 'Lady Finger',         tamil: 'வெண்டைக்காய்', unit: 'kg',   emoji: '🌿',  price: 0 },
+    { id: 'payaru',        name: 'Payaru',              tamil: 'பயறு',        unit: 'kg',    emoji: '🫛',  price: 0 },
+    { id: 'beetroot',      name: 'Beetroot',            tamil: 'பீட்ரூட்',   unit: 'kg',    emoji: '🫜',  price: 0 },
+    { id: 'k_amarai',      name: 'K Amarai',            tamil: 'க.அமராய்',   unit: 'kg',    emoji: '🫘',  price: 0 },
+    { id: 'kozhi_amarai',  name: 'Kozhi Amarai',        tamil: 'கோழி அமராய்', unit: 'kg',   emoji: '🫘',  price: 0 },
+    { id: 'pavai',         name: 'Pavakkai',            tamil: 'பாவக்காய்',  unit: 'kg',    emoji: '🫘',  price: 0 },
+    { id: 'peerkan',       name: 'Peerkan',             tamil: 'பீர்க்கன்',  unit: 'kg',    emoji: '🥬',  price: 0 },
+    { id: 'kovaikkai',     name: 'Kovaikkai',           tamil: 'கோவைக்காய்', unit: 'kg',    emoji: '🥒',  price: 0 },
+    { id: 'k_manga',       name: 'K Manga',             tamil: 'க.மாங்காய்', unit: 'kg',    emoji: '🥭',  price: 0 },
+    { id: 'u_manga',       name: 'U Manga',             tamil: 'உ.மாங்காய்', unit: 'kg',    emoji: '🥭',  price: 0 },
+    { id: 'kiyar',         name: 'Kiyar',               tamil: 'கியார்',      unit: 'kg',    emoji: '🥒',  price: 0 },
+    { id: 'elavan',        name: 'Elavan',              tamil: 'எலவன்',       unit: 'kg',    emoji: '🧅',  price: 0 },
+    { id: 's_vellari',     name: 'S Vellari',           tamil: 'எஸ்.வெள்ளரி', unit: 'kg',   emoji: '🥬', price: 0 },
+    { id: 'onion',         name: 'Onion',               tamil: 'வெங்காயம்',  unit: 'kg',    emoji: '🧅',  price: 0 },
+    { id: 'thar',          name: 'Thar',                tamil: 'தார்',        unit: 'kg',    emoji: '🍅',  price: 0 },
+    { id: 'brinjal',       name: 'Brinjal',             tamil: 'கத்தரிக்காய்', unit: 'kg',  emoji: '🍆',  price: 0 },
+    { id: 'koork',         name: 'Koork',               tamil: 'கூர்க்',      unit: 'kg',    emoji: '🥬', price: 0 },
+    { id: 'chembu',        name: 'Chembu',              tamil: 'சேம்பு',      unit: 'kg',    emoji: '🥔',  price: 0 },
+    { id: 'lemon',         name: 'Lemon',               tamil: 'எலுமிச்சை',  unit: 'pc',    emoji: '🍋',  price: 0 },
+    { id: 'northan',       name: 'Northan',             tamil: 'நார்தான்',   unit: 'kg',    emoji: '🥔',  price: 0 },
+    { id: 'beens',         name: 'Beans',               tamil: 'பீன்ஸ்',     unit: 'kg',    emoji: '🫘',  price: 0 },
+    { id: 'b_avarai',      name: 'B Avarai',            tamil: 'ப.அவரை',     unit: 'kg',    emoji: '🫘',  price: 0 },
+    { id: 'chow_chow',     name: 'Chow Chow',           tamil: 'சௌசௌ',       unit: 'kg',    emoji: '🥦',  price: 0 },
+    { id: 'suraikkai',     name: 'Suraikkai',           tamil: 'சுரைக்காய்', unit: 'kg',    emoji: '🥬',  price: 0 },
+    { id: 'nelli',         name: 'Nelli',               tamil: 'நெல்லி',      unit: 'pc',    emoji: '🫐',  price: 0 },
+    { id: 'c_flower',      name: 'Cauliflower',         tamil: 'காலிஃபிளவர்', unit: 'kg',   emoji: '🥦',  price: 0 },
+    { id: 'tomato',        name: 'Tomato',              tamil: 'தக்காளி',     unit: 'kg',    emoji: '🍅',  price: 0 },
+    { id: 'potato',        name: 'Potato',              tamil: 'உருளைக்கிழங்கு', unit: 'kg', emoji: '🥔', price: 0 },
+    { id: 'carrot',        name: 'Carrot',              tamil: 'கேரட்',       unit: 'kg',    emoji: '🥕',  price: 0 },
+    { id: 'cabbage',       name: 'Cabbage',             tamil: 'முட்டைக்கோஸ்', unit: 'kg',  emoji: '🥬',  price: 0 },
+    { id: 'garlic',        name: 'Garlic',              tamil: 'பூண்டு',      unit: 'kg',    emoji: '🧄',  price: 0 },
+    { id: 'ginger',        name: 'Ginger',              tamil: 'இஞ்சி',       unit: 'kg',    emoji: '🫚',  price: 0 },
   ];
+
   function getItems() {
     const saved = read('vb_items', null);
     if (!Array.isArray(saved) || saved.length === 0) {
       write('vb_items', DEFAULT_ITEMS);
       return [...DEFAULT_ITEMS];
     }
-
-    // Keep user prices/edits and auto-append any newly introduced defaults.
     const merged = [...saved];
     DEFAULT_ITEMS.forEach(def => {
       if (!merged.some(x => x.id === def.id)) merged.push(def);
     });
-
     if (merged.length !== saved.length) write('vb_items', merged);
     return merged;
   }

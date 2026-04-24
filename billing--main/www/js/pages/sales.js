@@ -130,7 +130,7 @@ function renderSaleDetail(container, params) {
   // Header actions
   document.getElementById('header-actions').innerHTML = `
     <button class="btn btn-secondary btn-sm" onclick="shareBill(buildShareText(DB.getSaleById('${bill.id}'),'sale'))">📤 Share</button>
-    <button class="btn btn-blue btn-sm" onclick="printSingleBill('${bill.id}','sale')">🖨</button>`;
+    <button class="btn btn-primary btn-sm" onclick="printSingleBill('${bill.id}','sale')">🖨️ Print</button>`;
 
   const sungam = Number(bill.sungam || 0);
   const sub = Number(bill.subTotal || 0);
@@ -178,10 +178,11 @@ function renderSaleDetail(container, params) {
 
       <!-- ACTIONS -->
       <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
-        <button class="btn btn-blue flex-1" onclick="printSingleBill('${bill.id}','sale')">🖨 Print</button>
+        <button class="btn btn-primary flex-1" onclick="printSingleBill('${bill.id}','sale')">🖨️ A4 Invoice</button>
+        <button class="btn btn-secondary flex-1" onclick="printThermalBill('${bill.id}','sale')">🧾 Thermal</button>
         <button class="btn btn-secondary flex-1" onclick="shareBill(buildShareText(DB.getSaleById('${bill.id}'),'sale'))">📤 Share</button>
         <button class="btn btn-amber flex-1" onclick="pushPage('add-sale',{editId:'${bill.id}'})">✏️ Edit</button>
-        <button class="btn btn-danger flex-1" onclick="confirmModal('Delete bill ${esc(bill.id)}?',function(){DB.deleteSale('${bill.id}');showToast('Deleted');navigateTo('sales');})">🗑 Delete</button>
+        <button class="btn btn-danger" style="width:40px;padding:0;" onclick="confirmModal('Delete bill ${esc(bill.id)}?',function(){DB.deleteSale('${bill.id}');showToast('Deleted','success');navigateTo('sales');})">🗑️</button>
       </div>
     </div>`;
 }

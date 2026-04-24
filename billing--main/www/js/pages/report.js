@@ -93,21 +93,21 @@ function renderReportDetail(container, params = {}) {
       </div>
 
       <!-- TRADING TABLE -->
-      <div class="card" style="padding:0;">
+      <div class="card" style="padding:0;overflow:hidden;">
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
             <thead>
-              <tr style="background:var(--bg3);border-bottom:2px solid var(--border);">
-                <th style="padding:12px 8px;text-align:left;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Items</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Purchase<br/>Weight</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Sale<br/>Weight</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Weight<br/>Tally</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Purchase<br/>Rate</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Sale<br/>Rate</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Price<br/>Tally</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Charges</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Gross<br/>Profit</th>
-                <th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Net<br/>Profit</th>
+              <tr style="background:var(--primary);color:#fff;">
+                <th style="padding:10px 8px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Items</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Purchase<br/>Weight</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Sale<br/>Weight</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Weight<br/>Tally</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Purchase<br/>Rate</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Sale<br/>Rate</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Price<br/>Tally</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Charges</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Gross<br/>Profit</th>
+                <th style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;white-space:nowrap;">Net<br/>Profit</th>
               </tr>
             </thead>
             <tbody>
@@ -259,14 +259,20 @@ function saveReport(date) {
   showToast('Report saved successfully!');
 }
 
-// Add charges functions to DB
+// ── REPORT CHARGES (stored via localStorage directly) ──
 DB.getReportCharges = function(date) {
-  const charges = read('vb_report_charges', {});
-  return charges[date] || { lorryRent: 0, loadingCharges: 0, cbCharges: 0 };
+  try {
+    const v = localStorage.getItem('vb_report_charges');
+    const all = v ? JSON.parse(v) : {};
+    return all[date] || { lorryRent: 0, loadingCharges: 0, cbCharges: 0 };
+  } catch { return { lorryRent: 0, loadingCharges: 0, cbCharges: 0 }; }
 };
 
 DB.saveReportCharges = function(date, charges) {
-  const allCharges = read('vb_report_charges', {});
-  allCharges[date] = charges;
-  write('vb_report_charges', allCharges);
-};
+  try {
+    const v = localStorage.getItem('vb_report_charges');
+    const all = v ? JSON.parse(v) : {};
+    all[date] = charges;
+    localStorage.setItem('vb_report_charges', JSON.stringify(all));
+  } catch(e) { console.error('saveReportCharges error', e); }
+};
