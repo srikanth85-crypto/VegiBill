@@ -26,7 +26,6 @@ function buildA4InvoiceHTML(bill, type = 'sale') {
     <tr class="${idx % 2 === 1 ? 'alt-row' : ''}">
       <td class="center">${fmtNum(item.pricePerUnit)}</td>
       <td class="item-name">${esc(item.itemName)}</td>
-      <td class="center">${idx + 1}</td>
       <td class="center">${esc(item.bags || '-')}</td>
       <td class="center">${fmtNum(item.quantity)}</td>
       <td class="center">${esc(item.unit || 'kg')}</td>
@@ -376,7 +375,6 @@ function buildA4InvoiceHTML(bill, type = 'sale') {
         <tr>
           <th class="center">Rate (₹)</th>
           <th class="left">Item Name</th>
-          <th class="center">S.No</th>
           <th class="center">Bags</th>
           <th class="center">Weight</th>
           <th class="center">Unit</th>
@@ -385,7 +383,7 @@ function buildA4InvoiceHTML(bill, type = 'sale') {
       </thead>
       <tbody>
         ${itemRows}
-        ${(bill.items || []).length === 0 ? '<tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;">No items</td></tr>' : ''}
+        ${(bill.items || []).length === 0 ? '<tr><td colspan="6" style="text-align:center;padding:20px;color:#94a3b8;">No items</td></tr>' : ''}
       </tbody>
     </table>
   </div>
