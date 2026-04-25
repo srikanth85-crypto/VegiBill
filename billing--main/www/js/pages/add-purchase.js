@@ -5,6 +5,7 @@
 let _purItems = [];
 let _editPurId = null;
 let _purAutocompleteOpen = null; // Track which item row has autocomplete open
+let _purAcHighlight = {}; // { [rowIndex]: highlightedIdx }
 
 function renderAddPurchase(container, params = {}) {
   _editPurId = params.editId || null;
@@ -262,13 +263,13 @@ function removePurItem(i) {
 }
 
 function _getPurItemSuggestions(input) {
-  if (!input || input.length < 2) return [];
+  if (!input || input.length < 1) return [];
   const items = DB.getItems();
   const q = input.toLowerCase();
   return items.filter(item => 
-    item.name.toLowerCase().includes(q) || 
-    item.tamil.toLowerCase().includes(q)
-  ).slice(0, 6); // Show max 6 suggestions
+    (item.name && item.name.toLowerCase().includes(q)) || 
+    (item.tamil && item.tamil.toLowerCase().includes(q))
+  ).slice(0, 8); // Show max 8 suggestions
 }
 
 function _hidePurAutocomplete(i) {
@@ -277,61 +278,85 @@ function _hidePurAutocomplete(i) {
     const d2 = document.getElementById('pur-autocomplete-mobile-' + i);
     if(d1) d1.style.display = 'none';
     if(d2) d2.style.display = 'none';
+    delete _purAcHighlight[i];
   }, 200);
 }
 
 function _onPurItemKeydown(e, i) {
-  const dropdown = document.getElementById(`pur-autocomplete-${i}`);
+  const isMobile = window.innerWidth < 480;
+  const dropdownId = isMobile ? `pur-autocomplete-mobile-${i}` : `pur-autocomplete-${i}`;
+  const dropdown = document.getElementById(dropdownId);
   const input = document.querySelector(`.pur-item-name[data-index="${i}"]`);
   
-  if (e.key === 'Enter') {
+  const isOpen = dropdown && dropdown.style.display !== 'none';
+  const suggestions = _getPurItemSuggestions(input ? input.value : '');
+
+  if (e.key === 'ArrowDown') {
     e.preventDefault();
-    // Get first suggestion
-    const suggestions = _getPurItemSuggestions(input.value);
-    if (suggestions.length > 0) {
-      _selectPurItem(i, suggestions[0].name);
+    if (isOpen && suggestions.length > 0) {
+      _purAcHighlight[i] = Math.min((_purAcHighlight[i] || 0) + 1, suggestions.length - 1);
+      _showPurAutocomplete(i, input.value);
     }
     return;
   }
-  
-  if (e.key === 'Tab') {
+  if (e.key === 'ArrowUp') {
     e.preventDefault();
-    // Auto-select first suggestion on Tab
-    const suggestions = _getPurItemSuggestions(input.value);
-    if (suggestions.length > 0) {
-      _selectPurItem(i, suggestions[0].name);
-    } else {
-      // Move to next field if no suggestions
+    if (isOpen) {
+      _purAcHighlight[i] = Math.max((_purAcHighlight[i] || 0) - 1, 0);
+      _showPurAutocomplete(i, input.value);
+    }
+    return;
+  }
+  if (e.key === 'Enter' || e.key === 'Tab') {
+    if (isOpen && suggestions.length > 0) {
+      e.preventDefault();
+      const idx = _purAcHighlight[i] || 0;
+      _selectPurItem(i, suggestions[idx].id);
+      return;
+    }
+    if (e.key === 'Tab') {
+      _hidePurAutocomplete(i);
       const bagsInput = document.querySelector(`.pur-item-bags[data-index="${i}"]`);
-      if (bagsInput) bagsInput.focus();
+      if (bagsInput) { e.preventDefault(); bagsInput.focus(); }
     }
     return;
   }
+  if (e.key === 'Escape') {
+    _hidePurAutocomplete(i);
+    return;
+  }
   
-  // Original keydown logic for other keys
-  _onPurKeydown(e, i, 'name');
+  // Original keydown logic for other keys if not handled
+  if (e.key === 'Enter') {
+    _onPurKeydown(e, i, 'name');
+  }
 }
 
 function _onPurItemInput(e, i) {
   _purItems[i].itemName = e.target.value;
-  _showPurAutocomplete(i);
+  _purAcHighlight[i] = 0;
+  _showPurAutocomplete(i, e.target.value);
 }
 
-function _showPurAutocomplete(i) {
+function _showPurAutocomplete(i, query) {
   const input = document.querySelector(`.pur-item-name[data-index="${i}"]`);
   const isMobile = window.innerWidth < 480;
   const dropdownId = isMobile ? `pur-autocomplete-mobile-${i}` : `pur-autocomplete-${i}`;
   const dropdown = document.getElementById(dropdownId);
   if (!input || !dropdown) return;
 
-  const suggestions = _getPurItemSuggestions(input.value);
+  const val = query !== undefined ? query : input.value;
+  const suggestions = _getPurItemSuggestions(val);
 
-  if (suggestions.length > 0 && input.value.length >= 1) {
+  if (suggestions.length > 0) {
     _purAutocompleteOpen = i;
-    dropdown.innerHTML = suggestions.map((item) => `
-      <div class="autocomplete-item"
+    const highlighted = _purAcHighlight[i] || 0;
+    
+    dropdown.innerHTML = suggestions.map((item, idx) => `
+      <div class="autocomplete-item ${idx === highlighted ? 'highlighted' : ''}"
+        data-idx="${idx}"
         onmousedown="event.preventDefault();_selectPurItem(${i}, '${esc(item.id)}')"
-        onmouseover="this.classList.add('highlighted')" onmouseout="this.classList.remove('highlighted')">
+        onmouseover="_setPurAcHighlight(${i}, ${idx})">
         <span class="ac-emoji">${item.emoji || '🥬'}</span>
         <div>
           <div class="ac-name">${esc(item.name)}</div>
@@ -344,6 +369,12 @@ function _showPurAutocomplete(i) {
     dropdown.style.display = 'none';
     _purAutocompleteOpen = null;
   }
+}
+
+function _setPurAcHighlight(i, idx) {
+  _purAcHighlight[i] = idx;
+  const input = document.querySelector(`.pur-item-name[data-index="${i}"]`);
+  _showPurAutocomplete(i, input ? input.value : '');
 }
 
 function _selectPurItem(i, itemId) {
