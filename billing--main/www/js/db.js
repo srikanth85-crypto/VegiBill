@@ -166,6 +166,11 @@ const DB = (() => {
     write('vb_items', items);
   }
 
+  // ── AUTHENTICATION ──────────────────────────────────
+  function getAuth() { return read('vb_auth', null); }
+  function setAuth(phone) { write('vb_auth', { phone, loggedInAt: new Date().toISOString() }); }
+  function removeAuth() { localStorage.removeItem('vb_auth'); }
+
   return {
     getSales, saveSale, deleteSale, getSaleById, nextSaleNo,
     getPurchases, savePurchase, deletePurchase, getPurchaseById, nextPurNo,
@@ -173,5 +178,6 @@ const DB = (() => {
     getPartyBalances, setPartyBalance, getPartyBalance,
     getSettings, saveSettings,
     getItems, saveItem,
+    getAuth, setAuth, removeAuth,
   };
 })();

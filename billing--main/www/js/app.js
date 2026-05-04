@@ -48,6 +48,7 @@ function renderPage(tab, params = {}) {
   actions.innerHTML = '';
 
   switch (tab) {
+    case 'login':       renderLogin(container, params); break;
     case 'home':        renderHome(container, params); break;
     case 'add-sale':    renderAddSale(container, params); break;
     case 'sales':       renderSales(container, params); break;
@@ -81,7 +82,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // Set today's date in header
   const d = document.getElementById('header-date');
   if (d) d.textContent = new Date().toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
-  navigateTo('home');
+  
+  // Check auth status
+  const auth = DB.getAuth();
+  if (!auth) {
+    navigateTo('login');
+  } else {
+    navigateTo('home');
+  }
 
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {

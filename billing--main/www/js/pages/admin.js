@@ -161,7 +161,8 @@ function renderAdminPanel(container) {
           <button class="btn btn-secondary" onclick="navigateTo('sales')">📋 Sales</button>
           <button class="btn btn-secondary" onclick="navigateTo('purchase')">📦 Purchase</button>
           <button class="btn btn-secondary" onclick="navigateTo('items')">🥬 Items</button>
-          <button class="btn btn-danger" onclick="adminLogout()">🚪 Logout</button>
+          <button class="btn btn-amber" onclick="adminLogout()">🚪 Admin Logout</button>
+          <button class="btn btn-danger" onclick="DB.removeAuth(); navigateTo('login');">🔒 App Logout</button>
         </div>
       </div>
 
